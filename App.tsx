@@ -1,14 +1,87 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import FileUpload from './components/FileUpload';
 import ResultDisplay from './components/ResultDisplay';
+import HistoryList from './components/HistoryList';
 import { extractBusinessLicense } from './services/geminiService';
-import { BusinessLicenseData } from './types';
+import { BusinessLicenseData, HistoryItem } from './types';
+
+// Constants for localStorage keys
+const STORAGE_KEY_HISTORY = 'vn_license_history';
+const STORAGE_KEY_LAST_SESSION = 'vn_license_last_session';
 
 function App() {
   const [file, setFile] = useState<File | null>(null);
   const [extractedData, setExtractedData] = useState<BusinessLicenseData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // History State
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Load data from LocalStorage on Mount
+  useEffect(() => {
+    // 1. Load History
+    const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
+    if (savedHistory) {
+      try {
+        setHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error("Failed to parse history", e);
+      }
+    }
+
+    // 2. Load Last Session (Auto restore)
+    const lastSession = localStorage.getItem(STORAGE_KEY_LAST_SESSION);
+    if (lastSession) {
+      try {
+        const parsedSession = JSON.parse(lastSession);
+        // Only restore if valid data exists
+        if (parsedSession && parsedSession.data) {
+          setExtractedData(parsedSession.data);
+          // Optional: You could also restore the filename if you stored it separately
+        }
+      } catch (e) {
+        console.error("Failed to restore last session", e);
+      }
+    }
+  }, []);
+
+  const saveToHistory = (data: BusinessLicenseData, fileName: string) => {
+    const newItem: HistoryItem = {
+      id: Date.now().toString(),
+      fileName: fileName,
+      timestamp: Date.now(),
+      data: data
+    };
+
+    const newHistory = [newItem, ...history];
+    setHistory(newHistory);
+    
+    // Persist to LocalStorage
+    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(newHistory));
+    
+    // Save current session
+    localStorage.setItem(STORAGE_KEY_LAST_SESSION, JSON.stringify(newItem));
+  };
+
+  const handleDeleteHistory = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering selection
+    const newHistory = history.filter(item => item.id !== id);
+    setHistory(newHistory);
+    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(newHistory));
+    
+    // If we deleted the item currently being viewed, maybe clear the view?
+    // For now, let's keep the view active as it's less disruptive.
+  };
+
+  const handleSelectHistory = (item: HistoryItem) => {
+    setExtractedData(item.data);
+    setShowHistory(false); // Close history view
+    // Update last session so if they reload, this is what they see
+    localStorage.setItem(STORAGE_KEY_LAST_SESSION, JSON.stringify(item));
+  };
 
   const handleFileSelect = async (selectedFile: File) => {
     setFile(selectedFile);
@@ -30,6 +103,8 @@ function App() {
         try {
           const data = await extractBusinessLicense(base64String, currentFile.type);
           setExtractedData(data);
+          // Auto Save to History
+          saveToHistory(data, currentFile.name);
         } catch (err: any) {
           setError(err.message || "Lỗi trích xuất thông tin.");
         } finally {
@@ -52,32 +127,61 @@ function App() {
     setFile(null);
     setExtractedData(null);
     setError(null);
+    // Clear last session from storage when user explicitly resets
+    localStorage.removeItem(STORAGE_KEY_LAST_SESSION);
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-50 overflow-hidden">
+    <div className="h-full flex flex-col bg-slate-50 overflow-hidden relative">
+      {/* History List Overlay */}
+      {showHistory && (
+        <HistoryList 
+          history={history} 
+          onSelect={handleSelectHistory} 
+          onDelete={handleDeleteHistory}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
+
       {/* Header Compact */}
       <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
         <div className="flex items-center gap-2">
            <div className="bg-blue-600 p-1 rounded-md">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
            </div>
-           <h1 className="text-sm font-bold text-slate-800">VN Business License Extractor</h1>
+           <h1 className="text-sm font-bold text-slate-800">VN Business License</h1>
         </div>
-        {extractedData && (
-          <button 
-            onClick={handleReset}
-            className="text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded"
+        
+        <div className="flex items-center gap-2">
+          {extractedData && (
+            <button 
+              onClick={handleReset}
+              className="text-xs font-medium text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-2 py-1.5 rounded transition-colors"
+            >
+              Tải mới
+            </button>
+          )}
+          
+          <button
+            onClick={() => setShowHistory(true)}
+            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-full transition-colors relative"
+            title="Lịch sử trích xuất"
           >
-            Tải file khác
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {/* Dot indicator if history exists */}
+            {history.length > 0 && (
+               <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full border border-white"></span>
+            )}
           </button>
-        )}
+        </div>
       </header>
 
       {/* Main Content Area */}
       <main className="flex-grow overflow-hidden relative">
         {isLoading ? (
-          <div className="absolute inset-0 z-20 bg-white/90 flex flex-col items-center justify-center p-6 text-center">
+          <div className="absolute inset-0 z-20 bg-white/90 flex flex-col items-center justify-center p-6 text-center animate-fade-in">
              <div className="relative mb-4">
                <div className="w-12 h-12 border-4 border-slate-200 rounded-full"></div>
                <div className="w-12 h-12 border-4 border-blue-600 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
@@ -88,7 +192,7 @@ function App() {
         ) : null}
 
         {!extractedData ? (
-          <div className="h-full p-4 flex flex-col gap-4 overflow-y-auto">
+          <div className="h-full p-4 flex flex-col gap-4 overflow-y-auto animate-fade-in">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                <h2 className="text-sm font-semibold text-slate-700 mb-3">Tải lên giấy phép (Ảnh/PDF)</h2>
                <FileUpload onFileSelect={handleFileSelect} isLoading={isLoading} />
@@ -101,12 +205,23 @@ function App() {
               </div>
             )}
             
+            {/* Show Empty State or Intro if history is empty, or quick tips */}
+            <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
+               <h3 className="text-xs font-bold text-blue-800 mb-2 uppercase">Hướng dẫn</h3>
+               <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside opacity-80">
+                 <li>Tải lên ảnh hoặc file PDF Giấy phép kinh doanh.</li>
+                 <li>Chờ AI trích xuất thông tin tự động.</li>
+                 <li>Mở tab AMIS CRM để tự động điền dữ liệu.</li>
+                 <li>Lịch sử sẽ tự động được lưu lại.</li>
+               </ul>
+            </div>
+
             <div className="mt-auto text-center text-xs text-slate-400 py-2">
               Powered by Google Gemini 2.5 Flash
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col p-4 overflow-hidden">
+          <div className="h-full flex flex-col p-4 overflow-hidden animate-fade-in">
              <ResultDisplay data={extractedData} />
           </div>
         )}
