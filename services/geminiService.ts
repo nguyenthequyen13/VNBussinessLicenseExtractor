@@ -93,10 +93,14 @@ export const extractBusinessLicense = async (
 
     // Initialize AI client here instead of top-level to prevent crash on load
     const ai = new GoogleGenAI({ apiKey });
-    const modelId = "gemini-3-flash-preview"; 
+    // Use flash-latest alias for better stability with multimodal inputs if preview is unstable
+    const modelId = "gemini-2.5-flash-latest"; 
     
     // Clean base64 string if it contains metadata
     const cleanBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+    
+    // Ensure mimeType is valid, fallback if empty
+    const validMimeType = mimeType || "application/pdf";
 
     const response = await ai.models.generateContent({
       model: modelId,
@@ -104,7 +108,7 @@ export const extractBusinessLicense = async (
         parts: [
           {
             inlineData: {
-              mimeType: mimeType,
+              mimeType: validMimeType,
               data: cleanBase64,
             },
           },
@@ -120,12 +124,29 @@ export const extractBusinessLicense = async (
     });
 
     if (response.text) {
-      return JSON.parse(response.text) as BusinessLicenseData;
+      // Clean markdown code blocks if present (e.g. ```json ... ```)
+      let cleanedText = response.text.trim();
+      if (cleanedText.startsWith("```")) {
+        cleanedText = cleanedText.replace(/^```(json)?/, "").replace(/```$/, "").trim();
+      }
+      
+      try {
+        return JSON.parse(cleanedText) as BusinessLicenseData;
+      } catch (parseError) {
+        console.error("JSON Parse Error:", parseError, "Raw Text:", response.text);
+        throw new Error("Dữ liệu trả về từ AI không đúng định dạng JSON.");
+      }
     } else {
       throw new Error("Không nhận được dữ liệu từ Gemini.");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Extraction Error:", error);
-    throw error;
+    // Enhance error message for user
+    let userMsg = error.message || "Lỗi không xác định.";
+    if (userMsg.includes("400")) userMsg = "Lỗi dữ liệu đầu vào (File lỗi hoặc không hỗ trợ).";
+    if (userMsg.includes("403")) userMsg = "API Key không hợp lệ hoặc hết hạn.";
+    if (userMsg.includes("429")) userMsg = "Hệ thống đang quá tải, vui lòng thử lại sau giây lát.";
+    
+    throw new Error(userMsg);
   }
 };

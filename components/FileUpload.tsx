@@ -32,6 +32,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isLoading }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       onFileSelect(e.target.files[0]);
+      // Reset giá trị input để sự kiện onChange có thể kích hoạt lại
+      // ngay cả khi người dùng chọn lại cùng một file (ví dụ: retry sau khi lỗi)
+      e.target.value = '';
     }
   };
 

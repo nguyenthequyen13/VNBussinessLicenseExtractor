@@ -37,6 +37,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
   // Mapping Configuration based on provided screenshots
   const crmMappings = [
     { section: "Thông tin chung", field: "Mã số thuế", value: data.thong_tin_chung.ma_so_doanh_nghiep },
+    { section: "Thông tin chung", field: "Mã khách hàng", value: data.thong_tin_chung.ma_so_doanh_nghiep }, // Mapping thêm Mã khách hàng
     { section: "Thông tin chung", field: "Tên khách hàng", value: data.ten_doanh_nghiep.ten_tieng_viet },
     { section: "Thông tin chung", field: "Tên viết tắt", value: data.ten_doanh_nghiep.ten_viet_tat },
     { section: "Thông tin chung", field: "Điện thoại", value: data.dia_chi_tru_so.dien_thoai },
@@ -44,7 +45,8 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
     { section: "Thông tin chung", field: "Loại hình", value: data.thong_tin_chung.loai_hinh_doanh_nghiep },
     { section: "Thông tin hóa đơn", field: "Địa chỉ (Hóa đơn)", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
     { section: "Thông tin giao hàng", field: "Địa chỉ (Giao hàng)", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
-    { section: "Thông tin bổ sung", field: "Ngày thành lập/Ngày sinh", value: data.thong_tin_chung.ngay_dang_ky_lan_dau },
+    { section: "Thông tin bổ sung", field: "Ngày thành lập", value: data.thong_tin_chung.ngay_dang_ky_lan_dau },
+    { section: "Thông tin bổ sung", field: "Ngày sinh", value: data.thong_tin_chung.ngay_dang_ky_lan_dau },
     { section: "Người liên hệ (Gợi ý)", field: "Họ và tên", value: data.nguoi_dai_dien_phap_luat.ho_ten },
     { section: "Người liên hệ (Gợi ý)", field: "Chức vụ", value: data.nguoi_dai_dien_phap_luat.chuc_danh },
   ];
@@ -52,26 +54,68 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
   const handleFillToCRM = async () => {
     // Check if chrome API is available (in extension context)
     if (typeof chrome !== 'undefined' && chrome.tabs) {
+      setFillStatus("Đang kết nối...");
+      
       try {
-        setFillStatus("Đang điền...");
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         
-        if (tab?.id) {
-          chrome.tabs.sendMessage(tab.id, { 
-            action: "FILL_TO_CRM", 
-            data: crmMappings 
-          }, (response: any) => {
-             if (chrome.runtime.lastError) {
-                setFillStatus("Lỗi: Hãy refresh trang AMIS");
-                console.error(chrome.runtime.lastError);
-             } else if (response && response.status === 'success') {
+        if (!tab?.id) {
+            setFillStatus("Lỗi: Không tìm thấy tab");
+            return;
+        }
+
+        // Helper to send message
+        const sendMessage = async () => {
+            return new Promise((resolve, reject) => {
+                chrome.tabs.sendMessage(tab.id, { 
+                    action: "FILL_TO_CRM", 
+                    data: crmMappings 
+                }, (response: any) => {
+                    if (chrome.runtime.lastError) {
+                        reject(chrome.runtime.lastError);
+                    } else {
+                        resolve(response);
+                    }
+                });
+            });
+        };
+
+        try {
+            // Thử gửi tin nhắn lần đầu
+            const response: any = await sendMessage();
+            if (response && response.status === 'success') {
                 setFillStatus(`Đã điền ${response.filledCount} trường!`);
                 setTimeout(() => setFillStatus(null), 3000);
-             }
-          });
+            }
+        } catch (err) {
+            console.log("Injection missing, trying to inject script...", err);
+            setFillStatus("Đang khởi tạo script...");
+            
+            // Nếu lỗi (do content script chưa chạy), ta inject thủ công
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ['content.js']
+            });
+
+            // Đợi 1 chút cho script load rồi thử lại
+            setTimeout(async () => {
+                try {
+                    const response: any = await sendMessage();
+                    if (response && response.status === 'success') {
+                        setFillStatus(`Đã điền ${response.filledCount} trường!`);
+                        setTimeout(() => setFillStatus(null), 3000);
+                    } else {
+                        setFillStatus("Không tìm thấy input phù hợp.");
+                    }
+                } catch (retryErr) {
+                    console.error(retryErr);
+                    setFillStatus("Lỗi: Không thể điền vào trang này.");
+                }
+            }, 200);
         }
+
       } catch (e) {
-        setFillStatus("Lỗi kết nối");
+        setFillStatus("Lỗi hệ thống");
         console.error(e);
       }
     } else {
