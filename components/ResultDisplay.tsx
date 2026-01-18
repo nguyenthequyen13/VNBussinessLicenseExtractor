@@ -37,12 +37,14 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
   // Mapping Configuration based on provided screenshots
   const crmMappings = [
     { section: "Thông tin chung", field: "Mã số thuế", value: data.thong_tin_chung.ma_so_doanh_nghiep },
-    { section: "Thông tin chung", field: "Mã khách hàng", value: data.thong_tin_chung.ma_so_doanh_nghiep }, // Mapping thêm Mã khách hàng
+    { section: "Thông tin chung", field: "Mã khách hàng", value: data.thong_tin_chung.ma_so_doanh_nghiep }, 
     { section: "Thông tin chung", field: "Tên khách hàng", value: data.ten_doanh_nghiep.ten_tieng_viet },
     { section: "Thông tin chung", field: "Tên viết tắt", value: data.ten_doanh_nghiep.ten_viet_tat },
     { section: "Thông tin chung", field: "Điện thoại", value: data.dia_chi_tru_so.dien_thoai },
     { section: "Thông tin chung", field: "Email", value: data.dia_chi_tru_so.email },
+    // CHỈNH SỬA: Chỉ map vào trường "Loại hình" đúng theo giao diện AMIS
     { section: "Thông tin chung", field: "Loại hình", value: data.thong_tin_chung.loai_hinh_doanh_nghiep },
+    
     { section: "Thông tin hóa đơn", field: "Địa chỉ (Hóa đơn)", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
     { section: "Thông tin giao hàng", field: "Địa chỉ (Giao hàng)", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
     { section: "Thông tin bổ sung", field: "Ngày thành lập", value: data.thong_tin_chung.ngay_dang_ky_lan_dau },
