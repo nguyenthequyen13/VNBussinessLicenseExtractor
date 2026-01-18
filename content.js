@@ -11,8 +11,8 @@ if (!window.vnLicenseListenerAdded) {
 
       mappings.forEach(item => {
         if (item.value && item.field && item.value.trim() !== "") {
-          const success = findAndFillInput(item.field, item.value);
-          if (success) count++;
+          const filledForField = findAndFillInput(item.field, item.value);
+          if (filledForField) count++;
         }
       });
 
@@ -24,6 +24,7 @@ if (!window.vnLicenseListenerAdded) {
 
 // Hàm tìm input dựa trên Label text và điền dữ liệu
 function findAndFillInput(labelText, value) {
+  let hasFilledAny = false; // Cờ đánh dấu đã điền ít nhất 1 trường
   try {
     // 1. Tìm phần tử chứa text (Label)
     // Cải tiến: 
@@ -41,8 +42,9 @@ function findAndFillInput(labelText, value) {
     
     const result = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     
-    // 2. DUYỆT QUA TẤT CẢ CÁC LABEL TÌM THẤY (Thay vì chỉ lấy cái đầu tiên)
-    // Giúp tìm đúng label có input đi kèm, bỏ qua các label "rác"
+    // 2. DUYỆT QUA TẤT CẢ CÁC LABEL TÌM THẤY
+    // THAY ĐỔI QUAN TRỌNG: Không return ngay khi điền được, mà tiếp tục duyệt hết danh sách
+    // để điền vào tất cả các vị trí có Label giống nhau.
     for (let i = 0; i < result.snapshotLength; i++) {
         const targetLabel = result.snapshotItem(i);
         
@@ -86,12 +88,17 @@ function findAndFillInput(labelText, value) {
             }
         }
 
-        // 3. Nếu tìm thấy input hợp lệ, thực hiện điền và return true ngay
+        // 3. Nếu tìm thấy input hợp lệ, thực hiện điền
         if (inputEl) {
-            inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            inputEl.focus();
-            inputEl.click();
+            // Chỉ cuộn tới phần tử đầu tiên tìm thấy để tránh màn hình nhảy loạn xạ
+            if (!hasFilledAny) {
+                inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Focus nhẹ để kích hoạt event
+            // inputEl.focus(); 
 
+            // Logic set value (giữ nguyên như cũ)
             const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
             
             if (inputEl.tagName === 'TEXTAREA' || inputEl.tagName === 'INPUT') {
@@ -113,11 +120,13 @@ function findAndFillInput(labelText, value) {
             inputEl.style.setProperty('border', '1px solid red', 'important');
 
             console.log(`[VN License] Đã điền: [${labelText}] -> ${value}`);
-            return true; // Dừng vòng lặp thành công
+            
+            hasFilledAny = true; 
+            // KHÔNG return true ở đây nữa để vòng lặp tiếp tục
         }
     }
   } catch (e) {
     console.error(`[VN License] Lỗi khi điền trường ${labelText}:`, e);
   }
-  return false;
+  return hasFilledAny;
 }
