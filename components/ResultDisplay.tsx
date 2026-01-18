@@ -1,0 +1,159 @@
+import React, { useState } from 'react';
+import { BusinessLicenseData } from '../types';
+
+interface ResultDisplayProps {
+  data: BusinessLicenseData;
+}
+
+const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
+  const [activeTab, setActiveTab] = useState<'form' | 'json'>('form');
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    // Could add a toast notification here
+  };
+
+  const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+    <h3 className="text-sm font-bold text-blue-700 mt-5 mb-2 pb-1 border-b border-blue-100 uppercase tracking-wide sticky top-0 bg-white z-10 shadow-sm">
+      {children}
+    </h3>
+  );
+
+  const InfoRow = ({ label, value }: { label: string; value?: string }) => (
+    <div className="grid grid-cols-3 gap-2 py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
+      <div className="font-medium text-slate-500 text-xs flex items-center">{label}</div>
+      <div className="col-span-2 text-slate-900 font-medium text-xs break-words leading-relaxed">{value || "---"}</div>
+    </div>
+  );
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
+      {/* Tabs */}
+      <div className="flex border-b border-slate-200 flex-shrink-0 bg-slate-50">
+        <button
+          onClick={() => setActiveTab('form')}
+          className={`flex-1 py-3 text-xs font-bold transition-all ${
+            activeTab === 'form'
+              ? 'bg-white text-blue-600 border-b-2 border-blue-600 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          Form View
+        </button>
+        <button
+          onClick={() => setActiveTab('json')}
+          className={`flex-1 py-3 text-xs font-bold transition-all ${
+            activeTab === 'json'
+              ? 'bg-white text-blue-600 border-b-2 border-blue-600 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          JSON Data
+        </button>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-grow overflow-hidden relative bg-white">
+        <div className="absolute inset-0 overflow-y-auto custom-scrollbar">
+            {activeTab === 'form' ? (
+            <div className="p-4">
+                <div className="text-center mb-6 pb-4 border-b border-slate-100">
+                    <h2 className="text-sm font-bold text-slate-800 uppercase leading-snug px-4">{data.thong_tin_chung.tieu_de_giay_to}</h2>
+                    <div className="mt-2 inline-block bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                        <span className="text-xs text-blue-500 mr-1">Mã số DN:</span>
+                        <span className="font-mono font-bold text-sm text-blue-700">{data.thong_tin_chung.ma_so_doanh_nghiep}</span>
+                    </div>
+                </div>
+
+                <SectionTitle>1. Thông tin chung</SectionTitle>
+                <InfoRow label="Cơ quan cấp" value={data.thong_tin_chung.co_quan_cap.so_ban_nganh} />
+                <InfoRow label="Phòng ban" value={data.thong_tin_chung.co_quan_cap.phong_ban} />
+                <InfoRow label="Loại hình" value={data.thong_tin_chung.loai_hinh_doanh_nghiep} />
+                <InfoRow label="Ngày đăng ký" value={data.thong_tin_chung.ngay_dang_ky_lan_dau} />
+
+                <SectionTitle>2. Tên doanh nghiệp</SectionTitle>
+                <InfoRow label="Tiếng Việt" value={data.ten_doanh_nghiep.ten_tieng_viet} />
+                <InfoRow label="Nước ngoài" value={data.ten_doanh_nghiep.ten_tieng_nuoc_ngoai} />
+                <InfoRow label="Viết tắt" value={data.ten_doanh_nghiep.ten_viet_tat} />
+
+                <SectionTitle>3. Địa chỉ trụ sở</SectionTitle>
+                <InfoRow label="Chi tiết" value={data.dia_chi_tru_so.dia_chi_chi_tiet} />
+                <InfoRow label="Điện thoại" value={data.dia_chi_tru_so.dien_thoai} />
+                <InfoRow label="Email" value={data.dia_chi_tru_so.email} />
+
+                <SectionTitle>4. Vốn điều lệ</SectionTitle>
+                <InfoRow label="Số tiền" value={data.von_dieu_le.so_tien} />
+                <InfoRow label="Bằng chữ" value={data.von_dieu_le.bang_chu} />
+
+                <SectionTitle>5. Người đại diện pháp luật</SectionTitle>
+                <InfoRow label="Họ tên" value={data.nguoi_dai_dien_phap_luat.ho_ten} />
+                <InfoRow label="Chức danh" value={data.nguoi_dai_dien_phap_luat.chuc_danh} />
+                <InfoRow label="Giới tính" value={data.nguoi_dai_dien_phap_luat.gioi_tinh} />
+                <InfoRow label="Sinh ngày" value={data.nguoi_dai_dien_phap_luat.sinh_ngay} />
+                <InfoRow label="Quốc tịch" value={data.nguoi_dai_dien_phap_luat.quoc_tich} />
+                <InfoRow label="CCCD/CMND" value={data.nguoi_dai_dien_phap_luat.so_dinh_danh_ca_nhan} />
+                <InfoRow label="ĐC liên lạc" value={data.nguoi_dai_dien_phap_luat.dia_chi_lien_lac} />
+
+                <SectionTitle>6. Danh sách thành viên góp vốn</SectionTitle>
+                <div className="overflow-x-auto border border-slate-200 rounded-lg mt-2 shadow-sm">
+                <table className="min-w-full text-xs text-left text-slate-500">
+                    <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                    <tr>
+                        <th className="px-3 py-2 whitespace-nowrap">STT</th>
+                        <th className="px-3 py-2 whitespace-nowrap">Tên thành viên</th>
+                        <th className="px-3 py-2 whitespace-nowrap text-right">Vốn góp</th>
+                        <th className="px-3 py-2 whitespace-nowrap text-right">%</th>
+                        <th className="px-3 py-2 whitespace-nowrap">Thông tin khác</th>
+                    </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                    {data.danh_sach_thanh_vien_gop_von.map((tv, idx) => (
+                        <tr key={idx} className="hover:bg-blue-50/50 transition-colors">
+                        <td className="px-3 py-2 text-center align-top">{tv.stt}</td>
+                        <td className="px-3 py-2 align-top">
+                            <div className="font-bold text-slate-900">{tv.ten_thanh_vien}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">{tv.quoc_tich}</div>
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono align-top text-slate-700">{tv.gia_tri_gop_von}</td>
+                        <td className="px-3 py-2 text-right font-medium align-top text-slate-700">{tv.ty_le_gop_von}</td>
+                        <td className="px-3 py-2 align-top min-w-[200px]">
+                            <div className="space-y-1">
+                                <p><span className="text-[10px] text-slate-400">Giấy tờ:</span> <span className="font-mono">{tv.so_giay_to_phap_ly}</span></p>
+                                <p className="leading-tight"><span className="text-[10px] text-slate-400 block mb-0.5">Địa chỉ:</span> {tv.dia_chi}</p>
+                            </div>
+                        </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+                </div>
+
+                <SectionTitle>7. Thông tin ký duyệt</SectionTitle>
+                <InfoRow label="Chức vụ" value={data.thong_tin_ky_duyet.chuc_vu_nguoi_ky} />
+                <InfoRow label="Người ký" value={data.thong_tin_ky_duyet.ho_ten_nguoi_ky} />
+                
+                <div className="h-12"></div>
+            </div>
+            ) : (
+            <div className="min-h-full relative bg-slate-900">
+                <div className="sticky top-0 right-0 p-2 flex justify-end bg-slate-900/90 backdrop-blur-md z-20 border-b border-slate-700 shadow-lg">
+                    <button
+                        onClick={copyToClipboard}
+                        className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-500 transition-colors shadow-md flex items-center gap-1.5 active:scale-95 transform"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                        Sao chép JSON
+                    </button>
+                </div>
+                <pre className="p-4 text-slate-100 text-[11px] font-mono leading-relaxed whitespace-pre-wrap break-all">
+                {JSON.stringify(data, null, 2)}
+                </pre>
+            </div>
+            )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ResultDisplay;

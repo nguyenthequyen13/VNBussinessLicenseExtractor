@@ -1,0 +1,5 @@
+{
+  "name": "Vietnamese Business License Extractor",
+  "description": "A tool to extract structured data from Vietnamese Business Registration Certificates (Giấy chứng nhận đăng ký doanh nghiệp) using Gemini AI.",
+  "requestFramePermissions": []
+}
