@@ -1,8 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BusinessLicenseData } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // Define the precise schema to match the user's requirements
 const responseSchema = {
   type: Type.OBJECT,
@@ -88,10 +86,17 @@ export const extractBusinessLicense = async (
   mimeType: string
 ): Promise<BusinessLicenseData> => {
   try {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("Chưa cấu hình API Key. Hãy tạo file .env chứa API_KEY.");
+    }
+
+    // Initialize AI client here instead of top-level to prevent crash on load
+    const ai = new GoogleGenAI({ apiKey });
     const modelId = "gemini-3-flash-preview"; 
     
     // Clean base64 string if it contains metadata
-    const cleanBase64 = base64Data.split(',')[1];
+    const cleanBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
 
     const response = await ai.models.generateContent({
       model: modelId,
