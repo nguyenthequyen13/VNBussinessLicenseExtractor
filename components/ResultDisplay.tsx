@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
 import { BusinessLicenseData } from '../types';
 
+declare const chrome: any;
+
 interface ResultDisplayProps {
   data: BusinessLicenseData;
 }
 
 const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
-  const [activeTab, setActiveTab] = useState<'form' | 'json'>('form');
+  const [activeTab, setActiveTab] = useState<'form' | 'mapping' | 'json'>('form');
+  const [fillStatus, setFillStatus] = useState<string | null>(null);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(JSON.stringify(data, null, 2));
     // Could add a toast notification here
+  };
+
+  const copyValue = (val: string) => {
+    navigator.clipboard.writeText(val);
+    // Visual feedback could be added here
   };
 
   const SectionTitle = ({ children }: { children: React.ReactNode }) => (
@@ -25,6 +33,51 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
       <div className="col-span-2 text-slate-900 font-medium text-xs break-words leading-relaxed">{value || "---"}</div>
     </div>
   );
+
+  // Mapping Configuration based on provided screenshots
+  const crmMappings = [
+    { section: "Thông tin chung", field: "Mã số thuế", value: data.thong_tin_chung.ma_so_doanh_nghiep },
+    { section: "Thông tin chung", field: "Tên khách hàng", value: data.ten_doanh_nghiep.ten_tieng_viet },
+    { section: "Thông tin chung", field: "Tên viết tắt", value: data.ten_doanh_nghiep.ten_viet_tat },
+    { section: "Thông tin chung", field: "Điện thoại", value: data.dia_chi_tru_so.dien_thoai },
+    { section: "Thông tin chung", field: "Email", value: data.dia_chi_tru_so.email },
+    { section: "Thông tin chung", field: "Loại hình", value: data.thong_tin_chung.loai_hinh_doanh_nghiep },
+    { section: "Thông tin hóa đơn", field: "Địa chỉ (Hóa đơn)", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
+    { section: "Thông tin giao hàng", field: "Địa chỉ (Giao hàng)", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
+    { section: "Thông tin bổ sung", field: "Ngày thành lập/Ngày sinh", value: data.thong_tin_chung.ngay_dang_ky_lan_dau },
+    { section: "Người liên hệ (Gợi ý)", field: "Họ và tên", value: data.nguoi_dai_dien_phap_luat.ho_ten },
+    { section: "Người liên hệ (Gợi ý)", field: "Chức vụ", value: data.nguoi_dai_dien_phap_luat.chuc_danh },
+  ];
+
+  const handleFillToCRM = async () => {
+    // Check if chrome API is available (in extension context)
+    if (typeof chrome !== 'undefined' && chrome.tabs) {
+      try {
+        setFillStatus("Đang điền...");
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        
+        if (tab?.id) {
+          chrome.tabs.sendMessage(tab.id, { 
+            action: "FILL_TO_CRM", 
+            data: crmMappings 
+          }, (response: any) => {
+             if (chrome.runtime.lastError) {
+                setFillStatus("Lỗi: Hãy refresh trang AMIS");
+                console.error(chrome.runtime.lastError);
+             } else if (response && response.status === 'success') {
+                setFillStatus(`Đã điền ${response.filledCount} trường!`);
+                setTimeout(() => setFillStatus(null), 3000);
+             }
+          });
+        }
+      } catch (e) {
+        setFillStatus("Lỗi kết nối");
+        console.error(e);
+      }
+    } else {
+        alert("Chức năng này chỉ hoạt động khi cài đặt Extension lên Chrome và đang mở tab AMIS CRM.");
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
@@ -41,6 +94,16 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
           Form View
         </button>
         <button
+          onClick={() => setActiveTab('mapping')}
+          className={`flex-1 py-3 text-xs font-bold transition-all ${
+            activeTab === 'mapping'
+              ? 'bg-white text-purple-600 border-b-2 border-purple-600 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          Gợi ý Mapping
+        </button>
+        <button
           onClick={() => setActiveTab('json')}
           className={`flex-1 py-3 text-xs font-bold transition-all ${
             activeTab === 'json'
@@ -55,7 +118,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
       {/* Content Area */}
       <div className="flex-grow overflow-hidden relative bg-white">
         <div className="absolute inset-0 overflow-y-auto custom-scrollbar">
-            {activeTab === 'form' ? (
+            {activeTab === 'form' && (
             <div className="p-4">
                 <div className="text-center mb-6 pb-4 border-b border-slate-100">
                     <h2 className="text-sm font-bold text-slate-800 uppercase leading-snug px-4">{data.thong_tin_chung.tieu_de_giay_to}</h2>
@@ -134,7 +197,81 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
                 
                 <div className="h-12"></div>
             </div>
-            ) : (
+            )}
+
+            {activeTab === 'mapping' && (
+              <div className="p-4">
+                <div className="bg-purple-50 p-3 rounded-lg border border-purple-100 mb-4 flex justify-between items-start gap-3">
+                  <div className="text-xs text-purple-800">
+                    <p className="flex gap-2 items-center font-bold mb-1">
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Gợi ý tự động
+                    </p>
+                    <p className="opacity-90 leading-relaxed">
+                      Dữ liệu được map với các trường trên AMIS CRM. Nhấn "Điền vào CRM" để tự động nhập liệu.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleFillToCRM}
+                    className="flex-shrink-0 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2 px-3 rounded shadow-md transition-colors active:scale-95 flex items-center gap-1.5"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    Điền vào CRM
+                  </button>
+                </div>
+                
+                {fillStatus && (
+                  <div className={`mb-4 p-2 rounded text-xs font-semibold text-center ${fillStatus.startsWith('Lỗi') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
+                    {fillStatus}
+                  </div>
+                )}
+
+                <div className="space-y-6">
+                  {/* Group by section conceptually */}
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 pl-1">Phần mềm CRM</h4>
+                    <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                      <table className="min-w-full text-xs">
+                        <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                          <tr>
+                            <th className="px-3 py-2 text-left w-1/3">Trường trên CRM</th>
+                            <th className="px-3 py-2 text-left">Giá trị trích xuất</th>
+                            <th className="px-2 py-2 w-8"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {crmMappings.map((item, idx) => (
+                            <tr key={idx} className="group hover:bg-purple-50/30 transition-colors">
+                              <td className="px-3 py-2 align-middle">
+                                <div className="font-medium text-slate-700">{item.field}</div>
+                                <div className="text-[10px] text-slate-400">{item.section}</div>
+                              </td>
+                              <td className="px-3 py-2 align-middle font-mono text-slate-800 break-words">
+                                {item.value || <span className="text-slate-300 italic">Trống</span>}
+                              </td>
+                              <td className="px-2 py-2 align-middle text-right">
+                                {item.value && (
+                                  <button 
+                                    onClick={() => copyValue(item.value!)}
+                                    className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-100 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                    title="Sao chép"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                <div className="h-12"></div>
+              </div>
+            )}
+
+            {activeTab === 'json' && (
             <div className="min-h-full relative bg-slate-900">
                 <div className="sticky top-0 right-0 p-2 flex justify-end bg-slate-900/90 backdrop-blur-md z-20 border-b border-slate-700 shadow-lg">
                     <button
