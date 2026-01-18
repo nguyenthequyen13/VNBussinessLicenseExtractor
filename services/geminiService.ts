@@ -93,8 +93,9 @@ export const extractBusinessLicense = async (
 
     // Initialize AI client here instead of top-level to prevent crash on load
     const ai = new GoogleGenAI({ apiKey });
-    // Use flash-latest alias for better stability with multimodal inputs if preview is unstable
-    const modelId = "gemini-2.5-flash-latest"; 
+    
+    // UPDATED: Use the correct model ID supported by the API
+    const modelId = "gemini-3-flash-preview"; 
     
     // Clean base64 string if it contains metadata
     const cleanBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
@@ -145,6 +146,7 @@ export const extractBusinessLicense = async (
     let userMsg = error.message || "Lỗi không xác định.";
     if (userMsg.includes("400")) userMsg = "Lỗi dữ liệu đầu vào (File lỗi hoặc không hỗ trợ).";
     if (userMsg.includes("403")) userMsg = "API Key không hợp lệ hoặc hết hạn.";
+    if (userMsg.includes("404")) userMsg = "Model AI không phản hồi (404). Vui lòng thử lại sau.";
     if (userMsg.includes("429")) userMsg = "Hệ thống đang quá tải, vui lòng thử lại sau giây lát.";
     
     throw new Error(userMsg);
