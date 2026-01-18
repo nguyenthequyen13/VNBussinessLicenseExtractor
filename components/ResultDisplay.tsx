@@ -97,7 +97,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
                 files: ['content.js']
             });
 
-            // Đợi 1 chút cho script load rồi thử lại
+            // Đợi 500ms cho script load rồi thử lại (tăng từ 200ms)
             setTimeout(async () => {
                 try {
                     const response: any = await sendMessage();
@@ -111,7 +111,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
                     console.error(retryErr);
                     setFillStatus("Lỗi: Không thể điền vào trang này.");
                 }
-            }, 200);
+            }, 500);
         }
 
       } catch (e) {
