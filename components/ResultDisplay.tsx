@@ -37,7 +37,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
   // Mapping Configuration based on provided screenshots
   const crmMappings = [
     { section: "Thông tin chung", field: "Mã số thuế", value: data.thong_tin_chung.ma_so_doanh_nghiep },
-    { section: "Thông tin chung", field: "Mã khách hàng", value: data.thong_tin_chung.ma_so_doanh_nghiep }, 
+    // Đã xóa Mã khách hàng theo yêu cầu
     { section: "Thông tin chung", field: "Tên khách hàng", value: data.ten_doanh_nghiep.ten_tieng_viet },
     { section: "Thông tin chung", field: "Tên viết tắt", value: data.ten_doanh_nghiep.ten_viet_tat },
     { section: "Thông tin chung", field: "Điện thoại", value: data.dia_chi_tru_so.dien_thoai },
