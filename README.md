@@ -4,23 +4,24 @@ Extension này giúp trích xuất thông tin tự động từ ảnh hoặc fil
 
 ## 🚀 Tính năng
 
-*   Upload file ảnh (JPG, PNG) hoặc PDF.
-*   Trích xuất tự động các trường: Tên DN, Mã số thuế, Địa chỉ, Vốn, Người đại diện, Danh sách thành viên...
-*   Hiển thị kết quả dạng Form (dễ đọc) và JSON (dễ sao chép).
-*   Giao diện Popup nhỏ gọn tích hợp ngay trên trình duyệt.
+*   **Trích xuất thông minh**: Tự động đọc Tên DN, MST, Địa chỉ, Vốn, Người đại diện, Danh sách thành viên... từ ảnh/PDF.
+*   **Auto-fill CRM**: Tự động điền dữ liệu vào các form trên AMIS CRM/MISA (hỗ trợ điền hàng loạt trường trùng tên).
+*   **Quản lý API Key**: Nhập và lưu Google API Key trực tiếp trên giao diện (không cần hard-code).
+*   **Lịch sử**: Lưu lại lịch sử các lần trích xuất gần đây.
+*   **Giao diện**: Popup hiện đại, dễ sử dụng tích hợp ngay trên trình duyệt.
 
 ## 🛠 Yêu cầu hệ thống
 
-*   **Node.js**: Phiên bản 18 trở lên.
+*   **Node.js**: Phiên bản 18 trở lên (để build).
 *   **Google Gemini API Key**: Lấy miễn phí tại [Google AI Studio](https://aistudio.google.com/).
 
-## ⚙️ Thiết lập dự án (Build Project)
+## ⚙️ Hướng dẫn Build & Cài đặt
 
-Vì trình duyệt Chrome không thể chạy trực tiếp file `.tsx`, bạn cần sử dụng một công cụ đóng gói (Bundler). Chúng ta sẽ dùng **Vite**.
+Vì trình duyệt Chrome không thể chạy trực tiếp file `.tsx`, bạn cần sử dụng **Vite** để đóng gói dự án.
 
 ### Bước 1: Khởi tạo dự án
 
-Mở Terminal và chạy các lệnh sau để tạo khung dự án Vite:
+Mở Terminal và chạy các lệnh sau:
 
 ```bash
 # Tạo project mới
@@ -35,63 +36,14 @@ npm install @google/genai tailwindcss postcss autoprefixer
 
 ### Bước 2: Sao chép mã nguồn
 
-Copy nội dung các file bạn đã có vào các vị trí tương ứng trong thư mục `src`:
+Copy toàn bộ mã nguồn bạn đã tạo vào thư mục dự án tương ứng:
 
-1.  `App.tsx` -> `src/App.tsx`
-2.  `index.tsx` -> đổi tên thành `src/main.tsx` (Vite dùng main.tsx mặc định)
-3.  `types.ts` -> `src/types.ts`
-4.  Tạo thư mục `src/components` và copy `FileUpload.tsx`, `ResultDisplay.tsx` vào đó.
-5.  Tạo thư mục `src/services` và copy `geminiService.ts` vào đó.
-6.  Copy `manifest.json` vào thư mục **`public/manifest.json`**.
-7.  Copy `metadata.json` vào thư mục gốc (nếu cần lưu trữ).
+1.  `src/` : Chứa các file `App.tsx`, `main.tsx` (đổi tên từ `index.tsx`), `types.ts`, `components/`, `services/`.
+2.  `public/manifest.json` : File cấu hình Extension.
+3.  `content.js` : File script chạy ngầm trên trang CRM.
+4.  Các file cấu hình ở gốc: `vite.config.ts`, `tailwind.config.js`, `postcss.config.js`.
 
-### Bước 3: Cấu hình API Key và Vite
-
-Do code sử dụng `process.env.API_KEY`, ta cần cấu hình để Vite hiểu biến này.
-
-1.  Tạo file `.env` ở thư mục gốc (ngang hàng `package.json`):
-    ```env
-    VITE_GEMINI_API_KEY=AIzaSy... (Điền API Key của bạn vào đây)
-    ```
-
-2.  Sửa file `vite.config.ts`:
-
-    ```typescript
-    import { defineConfig, loadEnv } from 'vite'
-    import react from '@vitejs/plugin-react'
-
-    export default defineConfig(({ mode }) => {
-      const env = loadEnv(mode, process.cwd(), '');
-      return {
-        plugins: [react()],
-        define: {
-          'process.env.API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY),
-        },
-        build: {
-          outDir: 'dist',
-          rollupOptions: {
-            input: {
-              main: 'index.html', // Vite sẽ dùng index.html ở gốc làm entry
-            },
-          },
-        },
-      }
-    })
-    ```
-
-3.  Cập nhật file `index.html` (ở thư mục gốc):
-    Bạn cần sửa lại đường dẫn script trong `index.html` để trỏ tới `src/main.tsx`:
-
-    ```html
-    <!-- Tìm dòng này và sửa lại -->
-    <!-- Xóa phần importmap nếu dùng Vite build -->
-    <body>
-      <div id="root" class="h-full"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-    ```
-
-### Bước 4: Build Project
+### Bước 3: Build Project
 
 Chạy lệnh sau để đóng gói ứng dụng:
 
@@ -99,55 +51,41 @@ Chạy lệnh sau để đóng gói ứng dụng:
 npm run build
 ```
 
-Sau khi chạy xong, bạn sẽ thấy một thư mục **`dist`** được tạo ra. Đây chính là thư mục chứa Extension đã sẵn sàng để cài đặt.
+Sau khi chạy xong, thư mục **`dist`** sẽ được tạo ra. Đây chính là bản Extension hoàn chỉnh.
+
+### Bước 4: Cài đặt lên Chrome
+
+1.  Mở Chrome, nhập địa chỉ: `chrome://extensions/`
+2.  Bật **Developer mode** (Góc phải trên cùng).
+3.  Nhấn **Load unpacked**.
+4.  Chọn thư mục **`dist`** vừa tạo ở Bước 3.
 
 ---
 
-## 📥 Cài đặt lên Chrome
+## 📖 Hướng dẫn sử dụng
 
-1.  Mở trình duyệt Google Chrome (hoặc Edge, Brave).
-2.  Nhập vào thanh địa chỉ: `chrome://extensions/`
-3.  Bật chế độ **Developer mode** (Chế độ dành cho nhà phát triển) ở góc trên bên phải.
-4.  Nhấn vào nút **Load unpacked** (Tải tiện ích đã giải nén).
-5.  Chọn thư mục **`dist`** vừa được tạo ra ở Bước 4.
+1.  **Cấu hình lần đầu**:
+    *   Mở Extension.
+    *   Nhấn vào biểu tượng **Cài đặt (Bánh răng)** hoặc làm theo hướng dẫn trên màn hình.
+    *   Nhập **Google API Key** của bạn và nhấn Lưu.
 
-Extension sẽ xuất hiện trên thanh công cụ của trình duyệt.
+2.  **Trích xuất**:
+    *   Nhấn "Tải lên giấy phép" hoặc kéo thả file ảnh/PDF vào vùng chọn.
+    *   Chờ AI xử lý (vài giây).
 
-## 📝 Lưu ý quan trọng
+3.  **Điền vào CRM (AMIS)**:
+    *   Mở tab AMIS CRM cần nhập liệu.
+    *   Trên Extension, chuyển sang tab **Gợi ý Mapping**.
+    *   Nhấn nút **"Điền vào CRM"**. Extension sẽ tự động tìm các ô nhập liệu tương ứng và điền dữ liệu.
 
-*   **Về Tailwind CSS**: Trong code mẫu `index.html` sử dụng CDN. Tuy nhiên, Chrome Extension thường chặn CDN vì lý do bảo mật (CSP).
-    *   *Cách tốt nhất:* Cài Tailwind local (đã hướng dẫn ở lệnh `npm install`). Tạo file `src/index.css` và import các directive của Tailwind:
-        ```css
-        @tailwind base;
-        @tailwind components;
-        @tailwind utilities;
-        ```
-    *   Import css này vào `src/main.tsx`: `import './index.css'`.
-    *   Xóa thẻ `<script src="https://cdn.tailwindcss.com"></script>` trong `index.html`.
+---
 
-*   **Về API Key**: Key được build cứng vào trong code JS khi chạy lệnh build. Nếu bạn public code này lên Github, hãy cẩn thận đừng commit file `.env`.
+## 🔒 Chính sách bảo mật & Dữ liệu
+
+*   **API Key**: Key của bạn được lưu trữ an toàn trong `localStorage` của trình duyệt người dùng. Nó **không** bao giờ được gửi đi đâu ngoại trừ đến máy chủ Google để thực hiện trích xuất.
+*   **Dữ liệu file**: File bạn upload được gửi trực tiếp từ trình duyệt đến Google Gemini API để xử lý. Chúng tôi không có server trung gian lưu trữ file của bạn.
+*   **Quyền riêng tư**: Extension chỉ hoạt động cục bộ và tương tác với trang web đích (AMIS/MISA) khi bạn yêu cầu.
 
 ## 🤝 Đóng góp
 
-Mọi ý kiến đóng góp xin vui lòng tạo Pull Request hoặc Issue.
-
-## 🔒 Chính sách bảo mật (Privacy Policy)
-
-Chúng tôi coi trọng quyền riêng tư của bạn. Dưới đây là cách Extension này xử lý dữ liệu:
-
-### 1. Thu thập và Sử dụng dữ liệu
-*   **Dữ liệu tệp tin (PDF/Ảnh):** Extension chỉ đọc file bạn tải lên trực tiếp trên trình duyệt của bạn. Nội dung file được gửi **trực tiếp** từ trình duyệt của bạn đến **Google Gemini API** để xử lý trích xuất văn bản.
-*   **Không lưu trữ trung gian:** Chúng tôi **không** có máy chủ backend nào lưu trữ, thu thập hoặc xem tệp tin cũng như dữ liệu trích xuất của bạn. Mọi quá trình xử lý diễn ra giữa trình duyệt của bạn và Google.
-*   **Dữ liệu sau trích xuất:** Dữ liệu JSON trả về chỉ được lưu tạm thời trong bộ nhớ trình duyệt (RAM) để hiển thị lên giao diện Popup và sẽ mất đi khi bạn tải lại extension hoặc tắt trình duyệt.
-
-### 2. Quyền truy cập (Permissions)
-Extension yêu cầu các quyền sau để hoạt động:
-*   **`activeTab` & `scripting`**: Để thực hiện lệnh tự động điền (Auto-fill) vào trang web AMIS CRM đang mở. Extension không theo dõi lịch sử duyệt web của bạn.
-*   **`host_permissions` (*.amis.vn, *.misa.vn)**: Chỉ được sử dụng để xác định và tương tác với các trang CRM mục tiêu để điền dữ liệu.
-
-### 3. Dịch vụ bên thứ ba
-*   **Google Gemini API:** Dữ liệu của bạn được xử lý theo [Chính sách quyền riêng tư và Điều khoản dịch vụ của Google Generative AI](https://policies.google.com/privacy).
-*   **AMIS CRM:** Extension chỉ điền dữ liệu vào các ô nhập liệu (Input fields). Việc lưu dữ liệu vào CRM hoàn toàn do người dùng quyết định bằng cách nhấn nút "Lưu" trên giao diện của AMIS.
-
-### 4. API Key
-Nếu bạn tự build ứng dụng, API Key của bạn được lưu trữ cục bộ trong mã nguồn extension trên máy tính của bạn. Extension không gửi API Key này đi bất cứ đâu ngoại trừ các request đến Google server.
+Mọi ý kiến đóng góp xin vui lòng tạo Pull Request hoặc Issue trên GitHub.
