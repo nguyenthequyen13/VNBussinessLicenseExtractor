@@ -4,24 +4,28 @@ import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  
+  // Ensure we have a valid key string to prevent runtime crashes
+  // If env.API_KEY is missing, use a placeholder or check your .env file
+  const apiKey = env.API_KEY || process.env.API_KEY || '';
+
   return {
     plugins: [react()],
-    // Define environment variables to be replaced in the code
     define: {
-      'process.env.API_KEY': JSON.stringify(env.API_KEY || process.env.API_KEY),
+      // Polyfill process.env for libraries that might expect it
+      'process.env': {},
+      // Replace specific env variable
+      'process.env.API_KEY': JSON.stringify(apiKey),
     },
     build: {
       outDir: 'dist',
       emptyOutDir: true,
       rollupOptions: {
         input: {
-          // Entry point 1: The Popup HTML
           popup: resolve(__dirname, 'index.html'),
-          // Entry point 2: The Content Script (must be separate)
           content: resolve(__dirname, 'content.js'),
         },
         output: {
-          // Ensure content.js keeps its name (no hash) so manifest.json can find it
           entryFileNames: (chunkInfo) => {
             if (chunkInfo.name === 'content') {
               return 'content.js';
