@@ -82,6 +82,12 @@ function findAndFillInput(labelText, value) {
         inputEl.dispatchEvent(new Event('change', { bubbles: true }));
         inputEl.blur(); // Blur để trigger validation nếu có
 
+        // --- STYLE UPDATE: Bôi đỏ text để highlight ---
+        inputEl.style.setProperty('color', 'red', 'important');
+        inputEl.style.setProperty('font-weight', 'bold', 'important');
+        inputEl.style.setProperty('border', '1px solid red', 'important');
+        // ----------------------------------------------
+
         console.log(`Đã điền: [${labelText}] -> ${value}`);
         return true;
       } else {

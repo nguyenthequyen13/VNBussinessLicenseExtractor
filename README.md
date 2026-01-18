@@ -130,3 +130,24 @@ Extension sẽ xuất hiện trên thanh công cụ của trình duyệt.
 ## 🤝 Đóng góp
 
 Mọi ý kiến đóng góp xin vui lòng tạo Pull Request hoặc Issue.
+
+## 🔒 Chính sách bảo mật (Privacy Policy)
+
+Chúng tôi coi trọng quyền riêng tư của bạn. Dưới đây là cách Extension này xử lý dữ liệu:
+
+### 1. Thu thập và Sử dụng dữ liệu
+*   **Dữ liệu tệp tin (PDF/Ảnh):** Extension chỉ đọc file bạn tải lên trực tiếp trên trình duyệt của bạn. Nội dung file được gửi **trực tiếp** từ trình duyệt của bạn đến **Google Gemini API** để xử lý trích xuất văn bản.
+*   **Không lưu trữ trung gian:** Chúng tôi **không** có máy chủ backend nào lưu trữ, thu thập hoặc xem tệp tin cũng như dữ liệu trích xuất của bạn. Mọi quá trình xử lý diễn ra giữa trình duyệt của bạn và Google.
+*   **Dữ liệu sau trích xuất:** Dữ liệu JSON trả về chỉ được lưu tạm thời trong bộ nhớ trình duyệt (RAM) để hiển thị lên giao diện Popup và sẽ mất đi khi bạn tải lại extension hoặc tắt trình duyệt.
+
+### 2. Quyền truy cập (Permissions)
+Extension yêu cầu các quyền sau để hoạt động:
+*   **`activeTab` & `scripting`**: Để thực hiện lệnh tự động điền (Auto-fill) vào trang web AMIS CRM đang mở. Extension không theo dõi lịch sử duyệt web của bạn.
+*   **`host_permissions` (*.amis.vn, *.misa.vn)**: Chỉ được sử dụng để xác định và tương tác với các trang CRM mục tiêu để điền dữ liệu.
+
+### 3. Dịch vụ bên thứ ba
+*   **Google Gemini API:** Dữ liệu của bạn được xử lý theo [Chính sách quyền riêng tư và Điều khoản dịch vụ của Google Generative AI](https://policies.google.com/privacy).
+*   **AMIS CRM:** Extension chỉ điền dữ liệu vào các ô nhập liệu (Input fields). Việc lưu dữ liệu vào CRM hoàn toàn do người dùng quyết định bằng cách nhấn nút "Lưu" trên giao diện của AMIS.
+
+### 4. API Key
+Nếu bạn tự build ứng dụng, API Key của bạn được lưu trữ cục bộ trong mã nguồn extension trên máy tính của bạn. Extension không gửi API Key này đi bất cứ đâu ngoại trừ các request đến Google server.
