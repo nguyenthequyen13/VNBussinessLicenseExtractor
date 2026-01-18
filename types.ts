@@ -1,3 +1,4 @@
+
 export interface CoQuanCap {
   so_ban_nganh: string;
   phong_ban: string;
@@ -61,4 +62,11 @@ export interface BusinessLicenseData {
   danh_sach_thanh_vien_gop_von: ThanhVienGopVon[];
   nguoi_dai_dien_phap_luat: NguoiDaiDienPhapLuat;
   thong_tin_ky_duyet: ThongTinKyDuyet;
+}
+
+export interface HistoryItem {
+  id: string;
+  fileName: string;
+  timestamp: number;
+  data: BusinessLicenseData;
 }
