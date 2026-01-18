@@ -86,12 +86,14 @@ export const extractBusinessLicense = async (
   mimeType: string
 ): Promise<BusinessLicenseData> => {
   try {
-    const apiKey = process.env.API_KEY;
+    // UPDATED: Get API Key from LocalStorage
+    const apiKey = localStorage.getItem('gemini_api_key');
+    
     if (!apiKey) {
-      throw new Error("Chưa cấu hình API Key. Hãy tạo file .env chứa API_KEY.");
+      throw new Error("Chưa cấu hình API Key. Vui lòng nhập Key trong phần Cài đặt.");
     }
 
-    // Initialize AI client here instead of top-level to prevent crash on load
+    // Initialize AI client
     const ai = new GoogleGenAI({ apiKey });
     
     // UPDATED: Use the correct model ID supported by the API
@@ -145,7 +147,7 @@ export const extractBusinessLicense = async (
     // Enhance error message for user
     let userMsg = error.message || "Lỗi không xác định.";
     if (userMsg.includes("400")) userMsg = "Lỗi dữ liệu đầu vào (File lỗi hoặc không hỗ trợ).";
-    if (userMsg.includes("403")) userMsg = "API Key không hợp lệ hoặc hết hạn.";
+    if (userMsg.includes("403")) userMsg = "API Key không hợp lệ hoặc không có quyền truy cập model.";
     if (userMsg.includes("404")) userMsg = "Model AI không phản hồi (404). Vui lòng thử lại sau.";
     if (userMsg.includes("429")) userMsg = "Hệ thống đang quá tải, vui lòng thử lại sau giây lát.";
     
