@@ -8,8 +8,7 @@
     "default_title": "Trích Xuất ĐKKD"
   },
   "permissions": [
-    "activeTab",
-    "scripting"
+    "activeTab"
   ],
   "host_permissions": [
     "*://*.amis.vn/*",

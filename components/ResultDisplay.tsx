@@ -83,37 +83,16 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
         };
 
         try {
-            // Thử gửi tin nhắn lần đầu
+            // Thử gửi tin nhắn
             const response: any = await sendMessage();
             if (response && response.status === 'success') {
                 setFillStatus(`Đã điền ${response.filledCount} trường!`);
                 setTimeout(() => setFillStatus(null), 3000);
             }
         } catch (err) {
-            console.log("Injection missing, trying to inject script...", err);
-            setFillStatus("Đang khởi tạo script...");
-            
-            // Nếu lỗi (do content script chưa chạy), ta inject thủ công
-            await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                files: ['content.js']
-            });
-
-            // Đợi 500ms cho script load rồi thử lại (tăng từ 200ms)
-            setTimeout(async () => {
-                try {
-                    const response: any = await sendMessage();
-                    if (response && response.status === 'success') {
-                        setFillStatus(`Đã điền ${response.filledCount} trường!`);
-                        setTimeout(() => setFillStatus(null), 3000);
-                    } else {
-                        setFillStatus("Không tìm thấy input phù hợp.");
-                    }
-                } catch (retryErr) {
-                    console.error(retryErr);
-                    setFillStatus("Lỗi: Không thể điền vào trang này.");
-                }
-            }, 500);
+            console.log("Communication error", err);
+            // Nếu lỗi do script chưa load (ví dụ mới cài extension mà chưa refresh tab)
+            setFillStatus("Vui lòng tải lại trang CRM (F5) để kích hoạt.");
         }
 
       } catch (e) {
@@ -267,7 +246,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
                 </div>
                 
                 {fillStatus && (
-                  <div className={`mb-4 p-2 rounded text-xs font-semibold text-center ${fillStatus.startsWith('Lỗi') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
+                  <div className={`mb-4 p-2 rounded text-xs font-semibold text-center ${fillStatus.startsWith('Lỗi') || fillStatus.startsWith('Vui') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
                     {fillStatus}
                   </div>
                 )}
