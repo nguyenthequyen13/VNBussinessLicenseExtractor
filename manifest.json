@@ -1,23 +1,22 @@
 {
   "manifest_version": 3,
   "name": "Trích Xuất Đăng Ký Kinh Doanh (Gemini)",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Extension trích xuất thông tin từ ảnh/PDF ĐKKD Việt Nam.",
   "action": {
     "default_popup": "index.html",
     "default_title": "Trích Xuất ĐKKD"
   },
   "permissions": [
-    "activeTab",
-    "scripting"
+    "activeTab"
   ],
   "host_permissions": [
-    "*://*.amis.vn/*",
-    "*://*.misa.vn/*"
+    "https://misajsc.amis.vn/*",
+    "https://amisapp.misa.vn/*"
   ],
   "content_scripts": [
     {
-      "matches": ["*://*.amis.vn/*", "*://*.misa.vn/*"],
+      "matches": ["https://misajsc.amis.vn/*", "https://amisapp.misa.vn/*"],
       "js": ["content.js"],
       "run_at": "document_idle"
     }

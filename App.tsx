@@ -258,7 +258,7 @@ function App() {
             </div>
 
             <div className="mt-auto text-center text-xs text-slate-400 py-2">
-              Powered by Google Gemini 2.5 Flash
+              Powered Rickey
             </div>
           </div>
         ) : (
