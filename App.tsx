@@ -3,6 +3,7 @@ import FileUpload from './components/FileUpload';
 import ResultDisplay from './components/ResultDisplay';
 import HistoryList from './components/HistoryList';
 import Settings from './components/Settings';
+import Logo from './components/Logo'; // Import Logo
 import { extractBusinessLicense } from './services/geminiService';
 import { BusinessLicenseData, HistoryItem } from './types';
 
@@ -178,11 +179,12 @@ function App() {
 
       {/* Header Compact */}
       <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
-        <div className="flex items-center gap-2">
-           <div className="bg-blue-600 p-1 rounded-md">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+        <div className="flex items-center gap-3">
+           <Logo className="w-8 h-8 shadow-sm rounded-lg" />
+           <div>
+             <h1 className="text-sm font-bold text-slate-800 leading-tight">VN License Extractor</h1>
+             <p className="text-[10px] text-slate-500 leading-none">AI Powered</p>
            </div>
-           <h1 className="text-sm font-bold text-slate-800">VN Business License</h1>
         </div>
         
         <div className="flex items-center gap-2">
@@ -253,7 +255,7 @@ function App() {
                  <li>Vào Cài đặt (icon bánh răng) nhập API Key.</li>
                  <li>Tải lên ảnh hoặc file PDF Giấy phép kinh doanh.</li>
                  <li>Chờ AI trích xuất thông tin tự động.</li>
-                 <li>Mở tab Web App để điền dữ liệu.</li>
+                 <li>Mở tab AMIS CRM để tự động điền dữ liệu.</li>
                </ul>
             </div>
 

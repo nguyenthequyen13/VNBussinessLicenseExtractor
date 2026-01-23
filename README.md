@@ -5,7 +5,7 @@ Extension này giúp trích xuất thông tin tự động từ ảnh hoặc fil
 ## 🚀 Tính năng
 
 *   **Trích xuất thông minh**: Tự động đọc Tên DN, MST, Địa chỉ, Vốn, Người đại diện, Danh sách thành viên... từ ảnh/PDF.
-*   **Auto-fill Đa Năng**: Tự động điền dữ liệu vào **bất kỳ website nào** (phần mềm kế toán, form đăng ký...) dựa trên tên trường (Label).
+*   **Auto-fill Đa Năng**: Tự động điền dữ liệu vào **bất kỳ website nào** (CRM, phần mềm kế toán, form đăng ký...) dựa trên tên trường (Label).
 *   **Quản lý API Key**: Nhập và lưu Google API Key trực tiếp trên giao diện (không cần hard-code).
 *   **Lịch sử**: Lưu lại lịch sử các lần trích xuất gần đây.
 *   **Giao diện**: Popup hiện đại, dễ sử dụng tích hợp ngay trên trình duyệt.
@@ -74,7 +74,7 @@ Sau khi chạy xong, thư mục **`dist`** sẽ được tạo ra. Đây chính 
     *   Chờ AI xử lý (vài giây).
 
 3.  **Điền vào Phần mềm/Web App**:
-    *   Mở tab trình duyệt chứa form nhập liệu (ví dụ: Google Form, Web App bất kỳ...).
+    *   Mở tab trình duyệt chứa form nhập liệu (ví dụ: AMIS CRM, MISA, Google Form...).
     *   Trên Extension, chuyển sang tab **Auto Fill**.
     *   Nhấn nút **"Điền ngay"**. Extension sẽ tự động tìm các ô nhập liệu có nhãn trùng khớp và điền dữ liệu.
 
