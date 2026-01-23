@@ -41,7 +41,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
     { section: "Thông tin chung", field: "Tên đơn vị", value: data.ten_doanh_nghiep.ten_tieng_viet },
     { section: "Thông tin chung", field: "Tên viết tắt", value: data.ten_doanh_nghiep.ten_viet_tat },
     { section: "Thông tin chung", field: "Điện thoại", value: data.dia_chi_tru_so.dien_thoai },
-    { section: "Thông tin chung", field: "Số điện thoại", value: data.dia_chi_tru_so.dien_thoai },
+    { section: "Số điện thoại", field: "Số điện thoại", value: data.dia_chi_tru_so.dien_thoai },
     { section: "Thông tin chung", field: "Email", value: data.dia_chi_tru_so.email },
     { section: "Thông tin chung", field: "Loại hình", value: data.thong_tin_chung.loai_hinh_doanh_nghiep },
     
@@ -168,6 +168,23 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
                         <span className="font-mono font-bold text-sm text-blue-700">{data.thong_tin_chung.ma_so_doanh_nghiep}</span>
                     </div>
                 </div>
+
+                {/* Quick Fill Button in Form View */}
+                <div className="mb-6 flex justify-center">
+                   <button
+                    onClick={handleFillToApp}
+                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2.5 px-6 rounded-full shadow-md transition-all active:scale-95 hover:shadow-lg hover:shadow-purple-200"
+                   >
+                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                     Điền nhanh vào Web App
+                   </button>
+                </div>
+
+                {fillStatus && (
+                  <div className={`mb-4 p-2 rounded text-xs font-semibold text-center animate-in fade-in slide-in-from-top-2 ${fillStatus.startsWith('Lỗi') || fillStatus.startsWith('Vui') || fillStatus.startsWith('Không') ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
+                    {fillStatus}
+                  </div>
+                )}
 
                 <SectionTitle>1. Thông tin chung</SectionTitle>
                 <InfoRow label="Cơ quan cấp" value={data.thong_tin_chung.co_quan_cap.so_ban_nganh} />
