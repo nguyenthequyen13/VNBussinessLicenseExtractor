@@ -253,7 +253,7 @@ function App() {
                  <li>Vào Cài đặt (icon bánh răng) nhập API Key.</li>
                  <li>Tải lên ảnh hoặc file PDF Giấy phép kinh doanh.</li>
                  <li>Chờ AI trích xuất thông tin tự động.</li>
-                 <li>Mở tab AMIS CRM để tự động điền dữ liệu.</li>
+                 <li>Mở tab Web App để điền dữ liệu.</li>
                </ul>
             </div>
 

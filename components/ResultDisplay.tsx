@@ -85,7 +85,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
         const sendMessage = async () => {
             return new Promise((resolve, reject) => {
                 chrome.tabs.sendMessage(tab.id, { 
-                    action: "FILL_TO_CRM", 
+                    action: "FILL_TO_APP", 
                     data: fieldMappings 
                 }, (response: any) => {
                     if (chrome.runtime.lastError) {
