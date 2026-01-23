@@ -13,12 +13,10 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-    // Could add a toast notification here
   };
 
   const copyValue = (val: string) => {
     navigator.clipboard.writeText(val);
-    // Visual feedback could be added here
   };
 
   const SectionTitle = ({ children }: { children: React.ReactNode }) => (
@@ -34,29 +32,35 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
     </div>
   );
 
-  // Mapping Configuration based on provided screenshots
-  const crmMappings = [
+  // Cấu hình Mapping tổng quát cho nhiều phần mềm
+  const fieldMappings = [
     { section: "Thông tin chung", field: "Mã số thuế", value: data.thong_tin_chung.ma_so_doanh_nghiep },
-    // Đã xóa Mã khách hàng theo yêu cầu
+    { section: "Thông tin chung", field: "Mã số doanh nghiệp", value: data.thong_tin_chung.ma_so_doanh_nghiep },
+    { section: "Thông tin chung", field: "Tên doanh nghiệp", value: data.ten_doanh_nghiep.ten_tieng_viet },
     { section: "Thông tin chung", field: "Tên khách hàng", value: data.ten_doanh_nghiep.ten_tieng_viet },
+    { section: "Thông tin chung", field: "Tên đơn vị", value: data.ten_doanh_nghiep.ten_tieng_viet },
     { section: "Thông tin chung", field: "Tên viết tắt", value: data.ten_doanh_nghiep.ten_viet_tat },
     { section: "Thông tin chung", field: "Điện thoại", value: data.dia_chi_tru_so.dien_thoai },
+    { section: "Thông tin chung", field: "Số điện thoại", value: data.dia_chi_tru_so.dien_thoai },
     { section: "Thông tin chung", field: "Email", value: data.dia_chi_tru_so.email },
-    // CHỈNH SỬA: Chỉ map vào trường "Loại hình" đúng theo giao diện AMIS
     { section: "Thông tin chung", field: "Loại hình", value: data.thong_tin_chung.loai_hinh_doanh_nghiep },
     
-    { section: "Thông tin hóa đơn", field: "Địa chỉ (Hóa đơn)", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
-    { section: "Thông tin giao hàng", field: "Địa chỉ (Giao hàng)", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
+    { section: "Địa chỉ", field: "Địa chỉ", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
+    { section: "Địa chỉ", field: "Địa chỉ xuất hóa đơn", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
+    { section: "Địa chỉ", field: "Địa chỉ giao hàng", value: data.dia_chi_tru_so.dia_chi_chi_tiet },
+    
     { section: "Thông tin bổ sung", field: "Ngày thành lập", value: data.thong_tin_chung.ngay_dang_ky_lan_dau },
-    { section: "Thông tin bổ sung", field: "Ngày sinh", value: data.thong_tin_chung.ngay_dang_ky_lan_dau },
-    { section: "Người liên hệ (Gợi ý)", field: "Họ và tên", value: data.nguoi_dai_dien_phap_luat.ho_ten },
-    { section: "Người liên hệ (Gợi ý)", field: "Chức vụ", value: data.nguoi_dai_dien_phap_luat.chuc_danh },
+    { section: "Thông tin bổ sung", field: "Ngày cấp", value: data.thong_tin_chung.ngay_dang_ky_lan_dau },
+    { section: "Người liên hệ", field: "Người liên hệ", value: data.nguoi_dai_dien_phap_luat.ho_ten },
+    { section: "Người liên hệ", field: "Người đại diện", value: data.nguoi_dai_dien_phap_luat.ho_ten },
+    { section: "Người liên hệ", field: "Họ và tên", value: data.nguoi_dai_dien_phap_luat.ho_ten },
+    { section: "Người liên hệ", field: "Chức vụ", value: data.nguoi_dai_dien_phap_luat.chuc_danh },
   ];
 
-  const handleFillToCRM = async () => {
+  const handleFillToApp = async () => {
     // Check if chrome API is available (in extension context)
-    if (typeof chrome !== 'undefined' && chrome.tabs) {
-      setFillStatus("Đang kết nối...");
+    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.scripting) {
+      setFillStatus("Đang kết nối vào trang web...");
       
       try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -66,12 +70,23 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
             return;
         }
 
-        // Helper to send message
+        // 1. Inject script động vào trang web hiện tại (vì đã bỏ content_scripts trong manifest)
+        try {
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['content.js']
+          });
+        } catch (scriptErr) {
+          console.warn("Script injection warning (có thể đã tồn tại):", scriptErr);
+          // Tiếp tục chạy vì có thể script đã được inject trước đó
+        }
+
+        // 2. Helper to send message
         const sendMessage = async () => {
             return new Promise((resolve, reject) => {
                 chrome.tabs.sendMessage(tab.id, { 
                     action: "FILL_TO_CRM", 
-                    data: crmMappings 
+                    data: fieldMappings 
                 }, (response: any) => {
                     if (chrome.runtime.lastError) {
                         reject(chrome.runtime.lastError);
@@ -83,16 +98,17 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
         };
 
         try {
-            // Thử gửi tin nhắn
+            // 3. Gửi dữ liệu để điền
             const response: any = await sendMessage();
             if (response && response.status === 'success') {
                 setFillStatus(`Đã điền ${response.filledCount} trường!`);
                 setTimeout(() => setFillStatus(null), 3000);
+            } else {
+               setFillStatus("Không tìm thấy trường nào phù hợp.");
             }
         } catch (err) {
             console.log("Communication error", err);
-            // Nếu lỗi do script chưa load (ví dụ mới cài extension mà chưa refresh tab)
-            setFillStatus("Vui lòng tải lại trang CRM (F5) để kích hoạt.");
+            setFillStatus("Lỗi kết nối. Hãy thử F5 lại trang web đích.");
         }
 
       } catch (e) {
@@ -100,7 +116,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
         console.error(e);
       }
     } else {
-        alert("Chức năng này chỉ hoạt động khi cài đặt Extension lên Chrome và đang mở tab AMIS CRM.");
+        alert("Chức năng này chỉ hoạt động khi cài đặt Extension lên Chrome.");
     }
   };
 
@@ -126,7 +142,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
               : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
           }`}
         >
-          Gợi ý Mapping
+          Auto Fill
         </button>
         <button
           onClick={() => setActiveTab('json')}
@@ -229,24 +245,24 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
                 <div className="bg-purple-50 p-3 rounded-lg border border-purple-100 mb-4 flex justify-between items-start gap-3">
                   <div className="text-xs text-purple-800">
                     <p className="flex gap-2 items-center font-bold mb-1">
-                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      Gợi ý tự động
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                      Điền tự động (Auto Fill)
                     </p>
                     <p className="opacity-90 leading-relaxed">
-                      Dữ liệu được map với các trường trên AMIS CRM. Nhấn "Điền vào CRM" để tự động nhập liệu.
+                      Dữ liệu sẽ được điền vào form trên tab trình duyệt đang mở nếu tên trường trùng khớp.
                     </p>
                   </div>
                   <button
-                    onClick={handleFillToCRM}
+                    onClick={handleFillToApp}
                     className="flex-shrink-0 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2 px-3 rounded shadow-md transition-colors active:scale-95 flex items-center gap-1.5"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                    Điền vào CRM
+                    Điền ngay
                   </button>
                 </div>
                 
                 {fillStatus && (
-                  <div className={`mb-4 p-2 rounded text-xs font-semibold text-center ${fillStatus.startsWith('Lỗi') || fillStatus.startsWith('Vui') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
+                  <div className={`mb-4 p-2 rounded text-xs font-semibold text-center ${fillStatus.startsWith('Lỗi') || fillStatus.startsWith('Vui') || fillStatus.startsWith('Không') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
                     {fillStatus}
                   </div>
                 )}
@@ -254,22 +270,21 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
                 <div className="space-y-6">
                   {/* Group by section conceptually */}
                   <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 pl-1">Phần mềm CRM</h4>
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 pl-1">Dữ liệu sẵn sàng điền</h4>
                     <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
                       <table className="min-w-full text-xs">
                         <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                           <tr>
-                            <th className="px-3 py-2 text-left w-1/3">Trường trên CRM</th>
-                            <th className="px-3 py-2 text-left">Giá trị trích xuất</th>
+                            <th className="px-3 py-2 text-left w-1/3">Tên trường (Label)</th>
+                            <th className="px-3 py-2 text-left">Giá trị sẽ điền</th>
                             <th className="px-2 py-2 w-8"></th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {crmMappings.map((item, idx) => (
+                          {fieldMappings.map((item, idx) => (
                             <tr key={idx} className="group hover:bg-purple-50/30 transition-colors">
                               <td className="px-3 py-2 align-middle">
                                 <div className="font-medium text-slate-700">{item.field}</div>
-                                <div className="text-[10px] text-slate-400">{item.section}</div>
                               </td>
                               <td className="px-3 py-2 align-middle font-mono text-slate-800 break-words">
                                 {item.value || <span className="text-slate-300 italic">Trống</span>}

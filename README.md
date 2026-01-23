@@ -5,7 +5,7 @@ Extension này giúp trích xuất thông tin tự động từ ảnh hoặc fil
 ## 🚀 Tính năng
 
 *   **Trích xuất thông minh**: Tự động đọc Tên DN, MST, Địa chỉ, Vốn, Người đại diện, Danh sách thành viên... từ ảnh/PDF.
-*   **Auto-fill CRM**: Tự động điền dữ liệu vào các form trên AMIS CRM/MISA (hỗ trợ điền hàng loạt trường trùng tên).
+*   **Auto-fill Đa Năng**: Tự động điền dữ liệu vào **bất kỳ website nào** (CRM, phần mềm kế toán, form đăng ký...) dựa trên tên trường (Label).
 *   **Quản lý API Key**: Nhập và lưu Google API Key trực tiếp trên giao diện (không cần hard-code).
 *   **Lịch sử**: Lưu lại lịch sử các lần trích xuất gần đây.
 *   **Giao diện**: Popup hiện đại, dễ sử dụng tích hợp ngay trên trình duyệt.
@@ -40,7 +40,7 @@ Copy toàn bộ mã nguồn bạn đã tạo vào thư mục dự án tương �
 
 1.  `src/` : Chứa các file `App.tsx`, `main.tsx` (đổi tên từ `index.tsx`), `types.ts`, `components/`, `services/`.
 2.  `public/manifest.json` : File cấu hình Extension.
-3.  `content.js` : File script chạy ngầm trên trang CRM.
+3.  `content.js` : File script chạy ngầm (được inject động khi điền form).
 4.  Các file cấu hình ở gốc: `vite.config.ts`, `tailwind.config.js`, `postcss.config.js`.
 
 ### Bước 3: Build Project
@@ -73,10 +73,10 @@ Sau khi chạy xong, thư mục **`dist`** sẽ được tạo ra. Đây chính 
     *   Nhấn "Tải lên giấy phép" hoặc kéo thả file ảnh/PDF vào vùng chọn.
     *   Chờ AI xử lý (vài giây).
 
-3.  **Điền vào CRM (AMIS)**:
-    *   Mở tab AMIS CRM cần nhập liệu.
-    *   Trên Extension, chuyển sang tab **Gợi ý Mapping**.
-    *   Nhấn nút **"Điền vào CRM"**. Extension sẽ tự động tìm các ô nhập liệu tương ứng và điền dữ liệu.
+3.  **Điền vào Phần mềm/Web App**:
+    *   Mở tab trình duyệt chứa form nhập liệu (ví dụ: AMIS CRM, MISA, Google Form...).
+    *   Trên Extension, chuyển sang tab **Auto Fill**.
+    *   Nhấn nút **"Điền ngay"**. Extension sẽ tự động tìm các ô nhập liệu có nhãn trùng khớp và điền dữ liệu.
 
 ---
 
@@ -84,7 +84,7 @@ Sau khi chạy xong, thư mục **`dist`** sẽ được tạo ra. Đây chính 
 
 *   **API Key**: Key của bạn được lưu trữ an toàn trong `localStorage` của trình duyệt người dùng. Nó **không** bao giờ được gửi đi đâu ngoại trừ đến máy chủ Google để thực hiện trích xuất.
 *   **Dữ liệu file**: File bạn upload được gửi trực tiếp từ trình duyệt đến Google Gemini API để xử lý. Chúng tôi không có server trung gian lưu trữ file của bạn.
-*   **Quyền riêng tư**: Extension chỉ hoạt động cục bộ và tương tác với trang web đích (AMIS/MISA) khi bạn yêu cầu.
+*   **Quyền riêng tư**: Extension chỉ tương tác với trang web đích khi bạn bấm nút "Điền ngay" (thông qua quyền `activeTab`). Không chạy ngầm thu thập dữ liệu.
 
 ## 🤝 Đóng góp
 
