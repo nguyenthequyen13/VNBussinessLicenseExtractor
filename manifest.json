@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Trích Xuất Đăng Ký Kinh Doanh (Gemini)",
-  "version": "1.2",
+  "version": "1.2.1",
   "description": "Extension trích xuất thông tin từ ảnh/PDF ĐKKD Việt Nam và điền vào form bất kỳ.",
   "action": {
     "default_popup": "index.html",
