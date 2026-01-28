@@ -74,7 +74,7 @@ Sau khi chạy xong, thư mục **`dist`** sẽ được tạo ra. Đây chính 
     *   Chờ AI xử lý (vài giây).
 
 3.  **Điền vào Phần mềm/Web App**:
-    *   Mở tab trình duyệt chứa form nhập liệu (ví dụ: AMIS CRM, MISA, Google Form...).
+    *   Mở tab trình duyệt chứa form nhập liệu (ví dụ: CRM, phần mềm kế toán, Google Form...).
     *   Trên Extension, chuyển sang tab **Auto Fill**.
     *   Nhấn nút **"Điền ngay"**. Extension sẽ tự động tìm các ô nhập liệu có nhãn trùng khớp và điền dữ liệu.
 
