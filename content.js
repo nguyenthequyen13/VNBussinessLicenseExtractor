@@ -3,7 +3,7 @@ if (!window.vnLicenseListenerAdded) {
   window.vnLicenseListenerAdded = true;
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "FILL_TO_CRM") {
+    if (request.action === "FILL_FORM") {
       const mappings = request.data;
       let count = 0;
 
