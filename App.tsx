@@ -59,6 +59,19 @@ function App() {
         console.error("Failed to restore last session", e);
       }
     }
+
+    // 3. DEV CHECK: Verify icons exist (Fix for Chrome Web Store rejection)
+    // Only fetch if we are in a context where we can inspect assets easily
+    fetch('icon-16.png', { method: 'HEAD' })
+      .then((res) => {
+        if (!res.ok) {
+          setError("CẢNH BÁO BUILD: Không tìm thấy file icon-16.png. Hãy chạy file 'public/icon_generator.html' và lưu 3 file ảnh vào thư mục public/ trước khi build.");
+        }
+      })
+      .catch(() => {
+        // Ignore network errors in some contexts
+      });
+
   }, []);
 
   const handleSaveApiKey = (key: string) => {

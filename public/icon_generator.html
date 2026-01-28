@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Icon Extension</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px; text-align: center; background: #f8fafc; color: #334155; }
+        h1 { color: #1e40af; margin-bottom: 10px; }
+        .icon-container { background: white; margin: 15px; display: inline-block; vertical-align: top; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: transform 0.2s; }
+        .icon-container:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        canvas { border: 1px dashed #cbd5e1; margin-bottom: 15px; display: block; margin: 0 auto 15px; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: background 0.2s; }
+        button:hover { background: #1d4ed8; }
+        .note { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 15px; border-radius: 8px; max-width: 600px; margin: 0 auto 30px; line-height: 1.5; }
+        code { background: #f1f5f9; padding: 2px 5px; border-radius: 4px; font-family: monospace; color: #0f172a; }
+    </style>
+</head>
+<body>
+    <h1>Bước Quan Trọng: Tạo Icon PNG</h1>
+    
+    <div class="note">
+        <strong>Lỗi "Could not decode image: 'icon.svg'"</strong> xảy ra vì bạn chưa có file PNG.<br>
+        Chrome Extension bắt buộc icon phải là file ảnh PNG (không hỗ trợ SVG trong manifest).<br><br>
+        <strong>HƯỚNG DẪN:</strong><br>
+        1. Nhấn nút "Tải xuống" ở cả 3 hình bên dưới.<br>
+        2. Lưu 3 file này vào thư mục <code>public/</code> của dự án.<br>
+        3. Chạy lại lệnh build (<code>npm run build</code>).
+    </div>
+    
+    <div id="output"></div>
+
+    <script>
+        const svgData = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <rect x="96" y="64" width="320" height="384" rx="32" fill="white" stroke="#e2e8f0" stroke-width="16" />
+  <rect x="160" y="144" width="192" height="24" rx="8" fill="#cbd5e1" />
+  <rect x="160" y="208" width="192" height="24" rx="8" fill="#cbd5e1" />
+  <rect x="160" y="272" width="128" height="24" rx="8" fill="#cbd5e1" />
+  <circle cx="336" cy="336" r="88" fill="url(#grad1)" filter="url(#shadow)" stroke="white" stroke-width="12" />
+  <path d="M396 396L448 448" stroke="url(#grad1)" stroke-width="32" stroke-linecap="round" />
+  <path d="M312 320L336 344M336 320L312 344" stroke="white" stroke-width="8" stroke-linecap="round" opacity="0.8" />
+</svg>`;
+
+        const sizes = [16, 48, 128];
+        const container = document.getElementById('output');
+
+        sizes.forEach(size => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'icon-container';
+            
+            const title = document.createElement('h3');
+            title.textContent = `icon-${size}.png`;
+            wrapper.appendChild(title);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            wrapper.appendChild(canvas);
+
+            const img = new Image();
+            img.onload = () => {
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, size, size);
+                
+                const btn = document.createElement('button');
+                btn.textContent = `Tải xuống ${size}x${size}`;
+                btn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.download = `icon-${size}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                };
+                wrapper.appendChild(btn);
+            };
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+            
+            container.appendChild(wrapper);
+        });
+    </script>
+</body>
+</html>

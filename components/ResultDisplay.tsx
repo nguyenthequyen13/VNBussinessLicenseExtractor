@@ -7,6 +7,19 @@ interface ResultDisplayProps {
   data: BusinessLicenseData;
 }
 
+const SectionTitle = ({ children }: { children?: React.ReactNode }) => (
+  <h3 className="text-sm font-bold text-blue-700 mt-5 mb-2 pb-1 border-b border-blue-100 uppercase tracking-wide sticky top-0 bg-white z-10 shadow-sm">
+    {children}
+  </h3>
+);
+
+const InfoRow = ({ label, value }: { label: string; value?: string }) => (
+  <div className="grid grid-cols-3 gap-2 py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
+    <div className="font-medium text-slate-500 text-xs flex items-center">{label}</div>
+    <div className="col-span-2 text-slate-900 font-medium text-xs break-words leading-relaxed">{value || "---"}</div>
+  </div>
+);
+
 const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'mapping' | 'json'>('form');
   const [fillStatus, setFillStatus] = useState<string | null>(null);
@@ -18,19 +31,6 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ data }) => {
   const copyValue = (val: string) => {
     navigator.clipboard.writeText(val);
   };
-
-  const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-    <h3 className="text-sm font-bold text-blue-700 mt-5 mb-2 pb-1 border-b border-blue-100 uppercase tracking-wide sticky top-0 bg-white z-10 shadow-sm">
-      {children}
-    </h3>
-  );
-
-  const InfoRow = ({ label, value }: { label: string; value?: string }) => (
-    <div className="grid grid-cols-3 gap-2 py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
-      <div className="font-medium text-slate-500 text-xs flex items-center">{label}</div>
-      <div className="col-span-2 text-slate-900 font-medium text-xs break-words leading-relaxed">{value || "---"}</div>
-    </div>
-  );
 
   // Cấu hình Mapping tổng quát cho nhiều phần mềm
   const fieldMappings = [
